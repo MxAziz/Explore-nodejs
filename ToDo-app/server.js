@@ -6,44 +6,51 @@ const filePath = path.join(__dirname, './db/todo.json');
 
 const server = http.createServer((req, res) => {
     const method = req.method;
-    const url = req.url;
-
+    // const url = req.url;
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const pathName = url.pathname;
     //GET all todos
-    if (method === "GET", url === "/todos") {
+    if (method === "GET" && pathName === "/todos") {
         const data = fs.readFileSync(filePath, 'utf-8');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(data);
     }
     //post a new todo
-    else if (method === "POST", url === "/todos/create-todo") {
-        let data = '';
-        req.on('data', (chunk) => {
-            data = data + chunk;
-        })
+    else if (method === "POST" && pathName === "/todos/create-todo") {
+      let data = "";
+      req.on("data", (chunk) => {
+        data = data + chunk;
+      });
 
-        req.on('end', () => {
-            const {title, body} = JSON.parse(data);
+      req.on("end", () => {
+        const { title, body } = JSON.parse(data);
 
-            const createdAt = new Date().toLocaleString();
+        const createdAt = new Date().toLocaleString();
 
         const AllTodos = fs.readFileSync(filePath, { encoding: "utf-8" });
-            console.log(AllTodos);
 
-            // Parse the existing todos
-            const todos = JSON.parse(AllTodos || '[]');
+        // Parse the existing todos
+        const todos = JSON.parse(AllTodos || "[]");
 
-            todos.push({ title, body, createdAt });
+        todos.push({ title, body, createdAt });
 
-            fs.writeFileSync(filePath, JSON.stringify(todos, null, 2), {encoding: "utf-8"});
+        fs.writeFileSync(filePath, JSON.stringify(todos, null, 2), {
+          encoding: "utf-8",
+        });
 
-            res.end(JSON.stringify({ title, body, createdAt },null, 2));
+        res.end(JSON.stringify({ title, body, createdAt }, null, 2));
+      });
+    }
+    // GET a single todo
+    else if (method === "GET" && pathName === '/todo'  ){
+        const title = url.searchParams.get('title');
+        console.log(title);
 
-         })
-
+        res.end('this is a single todo');
     } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Route not found');
-  }
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Route not found");
+    }
 
     // res.end('welcome to the ToDo app server');
 });
