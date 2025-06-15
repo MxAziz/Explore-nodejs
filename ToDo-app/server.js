@@ -68,7 +68,6 @@ const server = http.createServer((req, res) => {
 
         const AllTodos = fs.readFileSync(filePath, { encoding: "utf-8" });
 
-        // Parse the existing todos
         const todos = JSON.parse(AllTodos || "[]");
 
         const todoIndex = todos.findIndex((todo) => todo.title === title);
@@ -87,6 +86,30 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ title, body, createdAt :todos[todoIndex].createdAt }, null, 2));
       });
     }
+      // delete a todo
+   else if (method === "DELETE" && pathName === "/todos/delete-todo") {
+    const title = url.searchParams.get('title');
+    const AllTodos = fs.readFileSync(filePath, { encoding: "utf-8" });
+    const todos = JSON.parse(AllTodos || "[]");
+
+    const todoIndex = todos.findIndex((todo) => todo.title === title);
+
+    if (todoIndex === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: "Todo not found for delete a todo" }));
+        return;
+    }
+
+    // Remove the todo
+    const deletedTodo = todos.splice(todoIndex, 1)[0];
+
+    fs.writeFileSync(filePath, JSON.stringify(todos, null, 2), {
+        encoding: "utf-8",
+    });
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ message: "Todo deleted", deleted: deletedTodo }, null, 2));
+}
 
     else {
       res.writeHead(404, { "Content-Type": "text/plain" });
