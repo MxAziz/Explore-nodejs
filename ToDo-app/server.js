@@ -44,9 +44,16 @@ const server = http.createServer((req, res) => {
     // GET a single todo
     else if (method === "GET" && pathName === '/todo'  ){
         const title = url.searchParams.get('title');
-        console.log(title);
+        const data = fs.readFileSync(filePath, 'utf-8');
+      const parseData = JSON.parse(data);
 
-        res.end('this is a single todo');
+      const todo = parseData.find((todo) => todo.title === title);
+
+      const stringifiedTodo = JSON.stringify(todo, null, 2);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+
+      res.end(stringifiedTodo);
+
     } else {
       res.writeHead(404, { "Content-Type": "text/plain" });
       res.end("Route not found");
